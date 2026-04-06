@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}NotesApp - Управляйте своими заметками{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <!-- Hero Section -->
+    <div class="row min-vh-75 align-items-center py-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4">
+                <i class="bi bi-journal-bookmark-fill text-primary"></i>
+                Ваши заметки всегда под рукой
+            </h1>
+            <p class="lead mb-4">
+                Простой и удобный менеджер заметок с тегами, поиском и организацией.
+                Структурируйте свои мысли, идеи и задачи в одном месте.
+            </p>
+            <div class="d-flex gap-3">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'note_list' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-arrow-right"></i> Перейти к заметкам
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Начать
+                    </a>
+                    <a href="{% url 'admin:index' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-info-circle"></i> Демо
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-6 mt-4 mt-lg-0">
+            <img src="https://placehold.co/600x400/0d6efd/white?text=Notes+App"
+                 alt="Notes App Preview"
+                 class="img-fluid rounded-3 shadow">
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5 pt-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="display-6">Ключевые возможности</h2>
+            <p class="text-muted">Всё, что нужно для продуктивной работы</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-tags fs-1 text-primary"></i>
+                    <h5 class="card-title mt-3">Умные теги</h5>
+                    <p class="card-text text-muted">
+                        Организуйте заметки с помощью тегов. Быстрый поиск и фильтрация.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-search fs-1 text-primary"></i>
+                    <h5 class="card-title mt-3">Мгновенный поиск</h5>
+                    <p class="card-text text-muted">
+                        Находите нужные заметки за секунды. Поиск по заголовку и содержимому.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-lock fs-1 text-primary"></i>
+                    <h5 class="card-title mt-3">Безопасно</h5>
+                    <p class="card-text text-muted">
+                        Ваши заметки видны только вам. Надёжная JWT аутентификация.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    {% if not user.is_authenticated %}
+        <div class="row mt-5">
+            <div class="col-12 text-center bg-light rounded-3 p-5">
+                <h3>Готовы организовать свои заметки?</h3>
+                <p class="mb-4">Присоединяйтесь к NotesApp прямо сейчас!</p>
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                    Начать бесплатно
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

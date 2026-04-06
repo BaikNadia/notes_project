@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои заметки - NotesApp{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2>
+                <i class="bi bi-journal-bookmark-fill"></i> Мои заметки
+                <span class="badge bg-primary">{{ notes|length }}</span>
+            </h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{% url 'note_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Новая заметка
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="get" class="d-flex gap-2">
+                <div class="flex-grow-1">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Поиск по заметкам..."
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="flex-grow-1">
+                    <select name="tag" class="form-select">
+                        <option value="">Все теги</option>
+                        {% for tag in all_tags %}
+                            <option value="{{ tag.name }}" {% if request.GET.tag == tag.name %}selected{% endif %}>
+                                {{ tag.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Искать
+                </button>
+                {% if request.GET.search or request.GET.tag %}
+                    <a href="{% url 'note_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Сбросить
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary" onclick="sortNotes('created_at')">
+                    <i class="bi bi-clock"></i> По дате
+                </button>
+                <button class="btn btn-outline-secondary" onclick="sortNotes('title')">
+                    <i class="bi bi-sort-alpha-down"></i> По названию
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Grid -->
+    {% if notes %}
+        <div class="row" id="notes-grid">
+            {% for note in notes %}
+                <div class="col-md-6 col-lg-4 mb-4 note-item"
+                     data-created="{{ note.created_at|date:'Y-m-d H:i:s' }}"
+                     data-title="{{ note.title|lower }}">
+                    <div class="card h-100 shadow-sm card-hover note-card"
+                         onclick="window.location.href='{% url 'note_detail' note.id %}'">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                {{ note.title|truncatechars:50 }}
+                            </h5>
+                            <p class="card-text text-muted">
+                                {{ note.content|truncatechars:100|linebreaksbr }}
+                            </p>
+                            <div class="mt-3">
+                                {% for tag in note.tags.all %}
+                                    <span class="tag-badge">
+                                        <i class="bi bi-tag"></i> {{ tag.name }}
+                                    </span>
+                                {% empty %}
+                                    <span class="text-muted small">Нет тегов</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar3"></i> {{ note.created_at|date:"d.m.Y H:i" }}
+                                {% if note.updated_at != note.created_at %}
+                                    <br><i class="bi bi-pencil"></i> {{ note.updated_at|date:"d.m.Y H:i" }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}">
+                                ← Назад
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.tag %}&tag={{ request.GET.tag }}{% endif %}">
+                                Вперёд →
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1"></i>
+            <p class="mt-2">У вас пока нет заметок.</p>
+            <a href="{% url 'note_create' %}" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Создать первую заметку
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function sortNotes(criteria) {
+    const grid = document.getElementById('notes-grid');
+    const items = Array.from(grid.getElementsByClassName('note-item'));
+
+    items.sort((a, b) => {
+        if (criteria === 'created_at') {
+            let dateA = new Date(a.dataset.created);
+            let dateB = new Date(b.dataset.created);
+            return dateB - dateA;
+        } else if (criteria === 'title') {
+            let titleA = a.dataset.title;
+            let titleB = b.dataset.title;
+            return titleA.localeCompare(titleB);
+        }
+        return 0;
+    });
+
+    items.forEach(item => grid.appendChild(item));
+}
+</script>
+{% endblock %}
